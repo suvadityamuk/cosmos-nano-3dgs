@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cosmos3-gaussian-splat"
+version = "0.1.0"
+description = "Generate camera-controlled Cosmos 3 views and reconstruct a Gaussian splat."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "OpenMDW-1.1" }
+dependencies = [
+  "huggingface-hub>=1.3.2",
+  "imageio>=2.37.0",
+  "imageio-ffmpeg>=0.6.0",
+  "jinja2>=3.1.6",
+  "numpy>=1.26.0,<2",
+  "pillow>=11.0.0",
+  "scipy>=1.14.0",
+  "tyro>=0.9.0",
+]
+
+[project.optional-dependencies]
+gpu = [
+  "accelerate>=1.12.0",
+  "cosmos-guardrail>=0.3.1",
+  "diffusers @ git+https://github.com/huggingface/diffusers.git@a949d3dd906528363d2b61f7f0b38abaed4169ca",
+  "gsplat==1.5.3",
+  "hydra-core>=1.3.5",
+  "lightglue",
+  "omegaconf>=2.3.1",
+  "opencv-python-headless>=4.11.0",
+  "pycolmap==3.10.0",
+  "torch>=2.7.0",
+  "torchvision>=0.22.0",
+  "transformers>=5.11.0",
+  "vggt @ git+https://github.com/facebookresearch/vggt.git@a288dd0f14786c93483e45524328726ab7b1b4ce",
+]
+test = [
+  "pytest>=8.3.0",
+  "ruff>=0.16.4",
+]
+
+[project.scripts]
+cosmos3-gsplat = "cosmos3_gsplat.cli:main"
+cosmos3-gsplat-submit = "cosmos3_gsplat.hf_jobs:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cosmos3_gsplat"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv.sources]
+lightglue = { git = "https://github.com/cvg/LightGlue.git", rev = "eb42fee2d71449efb0aa5c10549752b5d75384d8" }
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.extra-build-variables]
+gsplat = { BUILD_NO_CUDA = "1", BUILD_EXPERIMENTAL = "0" }
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
